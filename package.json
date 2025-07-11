@@ -1,0 +1,15 @@
+{
+  "name": "slack-bot-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@dotenvx/dotenvx": "^1.47.3",
+    "@slack/bolt": "^4.4.0"
+  }
+}
