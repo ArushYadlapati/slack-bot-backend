@@ -6,7 +6,8 @@
     "ngrok": "ngrok http --domain=fit-tough-pika.ngrok-free.app 3000",
     "serverless": "nodemon --ext ts,json --watch app.ts --exec 'serverless offline --noPrependStageInUrl'",
     "dev": "concurrently -k -r \"npm run serverless\" \"npm run ngrok:wait\"",
-    "ngrok:wait": "wait-on tcp:3000 && npm run ngrok"
+    "ngrok:wait": "wait-on tcp:3000 && npm run ngrok",
+    "prod": "serverless deploy"
   },
   "author": "",
   "license": "ISC",
