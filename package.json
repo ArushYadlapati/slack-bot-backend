@@ -3,13 +3,22 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "ngrok": "ngrok http --domain=fit-tough-pika.ngrok-free.app 3000",
+    "serverless": "nodemon --ext ts,json --watch app.ts --exec 'serverless offline --noPrependStageInUrl'",
+    "dev": "concurrently -k -r \"npm run serverless\" \"npm run ngrok:wait\"",
+    "ngrok:wait": "wait-on tcp:3000 && npm run ngrok"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
     "@dotenvx/dotenvx": "^1.47.3",
-    "@slack/bolt": "^4.4.0"
+    "@slack/bolt": "^4.4.0",
+    "npm-run-all": "^4.1.5"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0",
+    "serverless-offline": "^14.4.0",
+    "wait-on": "^8.0.3"
   }
 }
