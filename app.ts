@@ -1,6 +1,17 @@
 require("@dotenvx/dotenvx").config();
 const { App, AwsLambdaReceiver } = require("@slack/bolt");
 
+function getPSTDateString(date = new Date()) {
+    const options: Intl.DateTimeFormatOptions = {
+        timeZone: "America/Los_Angeles",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+    };
+    const [month, day, year] = new Intl.DateTimeFormat("en-US", options).format(date).split("/");
+    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+}
+
 const awsLambdaReceiver = new AwsLambdaReceiver({
     signingSecret: process.env.SLACK_SIGNING_SECRET,
 });
@@ -8,53 +19,6 @@ const awsLambdaReceiver = new AwsLambdaReceiver({
 const app = new App({
     token: process.env.SLACK_BOT_TOKEN,
     receiver: awsLambdaReceiver
-});
-
-app.message("hello", async ({ message, say }) => {
-    await say(
-        `Yo ID ${ message.user }. Your name is <@${ message.user }>.`
-    );
-});
-
-app.message("help", async ({ message, say }) => {
-   await say(
-       `Hello <@${ message.user }>. This is the /help command.`
-   );
-});
-
-app.message("play", async ({ message, say }) => {
-    await say(
-        `Hello <@${ message.user }>. This is the /play command.`
-    );
-});
-
-app.message("leaderboard", async ({ message, say }) => {
-    await say(
-        `Hello <@${ message.user }>. This is the /leaderboard command.`
-    );
-});
-
-app.message("button", async ({ message, say }) => {
-    await say({
-        blocks: [
-            {
-                type: 'section',
-                text: {
-                    type: 'mrkdwn',
-                    text: `Hey there <@${message.user}>!`,
-                },
-                accessory: {
-                    type: 'button',
-                    text: {
-                        type: 'plain_text',
-                        text: 'Click Me',
-                    },
-                    action_id: 'button_click',
-                },
-            },
-        ],
-        text: `Hey there <@${message.user}>!`,
-    });
 });
 
 app.command('/wordle-leaderboard', async ({ ack, respond }) => {
@@ -85,14 +49,42 @@ app.command('/wordle-leaderboard', async ({ ack, respond }) => {
     }
 });
 
-app.action('button_click', async ({ body, ack, say }) => {
+app.command('/wordle-guess', async ({ ack, respond, command }) => {
     await ack();
 
-    await say(`<@${body.user.id}> clicked the button`);
-});
+    const userId = command.user_id;
+    const guessWord = command.text.trim().split(/\s+/)[0]?.toLowerCase();
 
-app.message('goodbye', async ({ message, say }) => {
-    await say(`See ya later, <@${message.user}> :wave:`);
+    if (!guessWord || guessWord.length !== 5 || !/^[a-z]+$/.test(guessWord)) {
+        await respond("Please provide a valid 5-letter word. Example: `/wordle-guess words`");
+        return;
+    }
+
+    const pstDate = getPSTDateString();
+    try {
+        const apiRes = await fetch("https://slack-wordle-api.vercel.app/api/slack-guess", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                userId,
+                guess: guessWord,
+                timestamp: pstDate
+            })
+        });
+
+        if (!apiRes.ok) {
+            const errData = await apiRes.json();
+            await respond(`Error: ${errData.error ?? apiRes.statusText}`);
+            return;
+        }
+
+        const data = await apiRes.json();
+
+        await respond(data);
+
+    } catch (error) {
+        await respond(`An error occurred: ${error.message}`);
+    }
 });
 
 module.exports.handler = async (event, context, callback) => {
