@@ -57,6 +57,34 @@ app.message("button", async ({ message, say }) => {
     });
 });
 
+app.command('/wordle-leaderboard', async ({ ack, respond }) => {
+    await ack();
+
+    try {
+        const apiUrl = 'https://slack-wordle-api.vercel.app/api/game/leaderboard/viewAll';
+        const res = await fetch(apiUrl);
+        if (!res.ok) {
+            throw new Error(`API error: ${ res.status } ${ res.statusText }`);
+        }
+        const data = await res.json();
+
+        if (!data.leaderboard || data.leaderboard.length === 0) {
+            await respond("No leaderboard data found for today.");
+            return;
+        }
+
+        const leaderboardMsg = data.leaderboard
+            .map((entry, idx) =>
+                `*${idx + 1}.* <@${entry.userId}> — *${entry.score}* points (${entry.guessesCount} guesses)`
+            ).join("\n");
+
+        await respond(`🏆 *Today's Wordle Leaderboard* (${data.date}):\n${leaderboardMsg}`);
+
+    } catch (error) {
+        await respond(`Failed to fetch leaderboard: ${error.message}`);
+    }
+});
+
 app.action('button_click', async ({ body, ack, say }) => {
     await ack();
 
