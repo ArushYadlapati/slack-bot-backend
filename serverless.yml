@@ -4,8 +4,17 @@ provider:
   name: aws
   runtime: nodejs22.x
   environment:
+    SLACK_APP_ID: ${env:SLACK_APP_ID}
+    SLACK_CLIENT_ID: ${env:SLACK_CLIENT_ID}
+    SLACK_CLIENT_SECRET: ${env:SLACK_CLIENT_SECRET}
     SLACK_SIGNING_SECRET: ${env:SLACK_SIGNING_SECRET}
     SLACK_BOT_TOKEN: ${env:SLACK_BOT_TOKEN}
+    SLACK_XAPP_TOKEN: ${env:SLACK_XAPP_TOKEN}
+    PORT: ${env:PORT}
+    AWS_ACCESS_KEY_ID: ${env:AWS_ACCESS_KEY_ID}
+    AWS_SECRET_ACCESS_KEY: ${env:AWS_SECRET_ACCESS_KEY}
+    AWS_REGION: ${env:AWS_REGION}
+    AWS_FORMAT: ${env:AWS_FORMAT}
 functions:
   slack:
     handler: app.handler
